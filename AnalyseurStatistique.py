@@ -12,13 +12,18 @@ class AnalyseurStatistique:
     #Compte le nombre d'écoutes de chaque artiste dans la collection
     #puis retourne une liste contenant les n artistes les plus écoutés 
     #avec leur nombre d'écoutes du plus populaire au moins populaire.
-    def top_artistes(self, n):
+    def top_artistes(self, n, ecoutes=None):
 
         #Crée un dictionnaire pour compter les écoutes par artiste.
         compteur_artistes = {}
 
-        #Parcourt toutes les écoutes de la collection.
-        for ecoute in self.collection.ecoutes:
+        #Utilise toute les ecoutes si aucune liste d'écoute est donnée.
+        if ecoutes is None:
+            ecoutes = self.collection.ecoutes
+
+    
+        for ecoute in ecoutes:
+
             artiste = ecoute.chanson.artiste
 
             #Augmente le nombre d'écoute de l'artiste si il est déjà
@@ -54,16 +59,19 @@ class AnalyseurStatistique:
     #Compte le nombre d'écoutes de chaque chanson dans la collection
     #puis retourne une liste contenant les n chansons les plus écoutés 
     #avec leur nombre d'écoutes du plus populaire au moins populaire.
-    def top_chansons(self, n):
+    def top_chansons(self, n, ecoutes=None):
 
         #Crée un dictionnaire pour compter les écoutes par chanson.
         compteur_chanson = {}
 
 
-        #Parcourt toutes les écoutes de la collection.
-        for ecoute in self.collection.ecoutes:
-            chanson = ecoute.chanson
+        #Utilise toutes les écoutes si aucune liste d'écoute est donnée.
+        if ecoutes is None:
+            ecoutes = self.collection.ecoutes
 
+        for ecoute in ecoutes:
+            chanson = ecoute.chanson
+            
             #Augmente le nombre d'écoute de la chanson si elle est déjà
             #dans le dictionnaire sinon crée le compteur de la chanson à 1.
             if chanson in compteur_chanson:
