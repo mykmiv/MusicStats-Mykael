@@ -23,6 +23,7 @@ print("Nombre minutes:", bilan.nombre_minutes(ecoutes))
 print("Nombre artistes:", bilan.nombre_artistes(ecoutes))
 print("Nombre chansons:", bilan.nombre_chansons(ecoutes))
 
+#Test pour top 5 artistes et top 5 chansons
 print("Top 5 des artistes :")
 
 for artiste, nombre in bilan.top_artistes(ecoutes):
@@ -33,6 +34,7 @@ print("Top 5 des chansons :")
 for chanson, nombre in bilan.top_chansons(ecoutes):
     print(chanson.titre, chanson.artiste.nom, nombre)
 
+#Test pour la répartition des artistes.
 print("Repartition des artistes :")
 print(bilan.repartition_artistes(ecoutes))
 

@@ -12,6 +12,7 @@ from PrevisionPopularite import PrevisionPopularite
 from PageTableauDeBord import PageTableauDeBord
 from PageProfil import PageProfils
 from PagePrevision import PagePrevision
+from PageWrapped import PageWrapped
 
 
 #Chemin du CSV par défaut, calculé à partir du dossier de ce fichier
@@ -58,7 +59,7 @@ class ApplicationMusicStats(ctk.CTk):
         self.pages = {}
 
         # Définit le titre affiché dans la barre de la fenêtre.
-        self.title("MusicStats")
+        self.title("MusicStats-Wrapped")
 
          # Définit les dimensions initiales de la fenêtre
         # à 1100 pixels de largeur et 750 pixels de hauteur.
@@ -102,7 +103,7 @@ class ApplicationMusicStats(ctk.CTk):
         self.titre = ctk.CTkLabel(self.menu, text="MusicStats", font=("Arial", 26, "bold"))
         self.titre.pack(pady=30)
 
-        #Crée les 3 boutons de navigation.
+        #Crée les 4 boutons de navigation.
         self.bouton_dashboard = ctk.CTkButton(self.menu, text="Tableau de bord", command=self.afficher_dashboard)
         self.bouton_dashboard.pack(pady=10, padx=15, fill="x")
 
@@ -112,10 +113,16 @@ class ApplicationMusicStats(ctk.CTk):
         self.bouton_previsions = ctk.CTkButton(self.menu, text="Prévisions", command=self.afficher_previsions)
         self.bouton_previsions.pack(pady=10, padx=15, fill="x")
 
+        self.bouton_wrapped = ctk.CTkButton(self.menu, text="Wrapped", command=self.afficher_wrapped)
+        self.bouton_wrapped.pack(pady=10, padx=15, fill="x")
+
+
+
         #Associe chaque nom de page à son bouton.
         self.boutons = {"dashboard": self.bouton_dashboard,
                         "profils": self.bouton_profils,
-                        "previsions": self.bouton_previsions}
+                        "previsions": self.bouton_previsions,
+                        "wrapped": self.bouton_wrapped}
 
         #Conserve la couleur normale des boutons pour pouvoir la remettre.
         self.couleur_bouton = self.bouton_dashboard.cget("fg_color")
@@ -198,6 +205,7 @@ class ApplicationMusicStats(ctk.CTk):
         self.pages["dashboard"] = PageTableauDeBord(self.contenu, self.collection, self.analyseur, self.graphiques)
         self.pages["profils"] = PageProfils(self.contenu, self.collection, self.analyseur, self.graphiques)
         self.pages["previsions"] = PagePrevision(self.contenu, self.collection)
+        self.pages["wrapped"] = PageWrapped(self.contenu, self.collection, self.graphiques)
 
         #Place les pages dans la meme case puis les cache.
         for page in self.pages.values():
@@ -256,6 +264,10 @@ class ApplicationMusicStats(ctk.CTk):
     #Affiche la page des prévisions.
     def afficher_previsions(self):
         self.afficher_page("previsions")
+
+    #Affiche la page Wrapped.
+    def afficher_wrapped(self):
+        self.afficher_page("wrapped")
 
     #Ferme les graphiques Matplotlib encore ouverts puis la fenetre.
     def quitter(self):
