@@ -152,7 +152,8 @@ class PageWrapped(ctk.CTkFrame):
         self.label_artistes.configure(text="-")
         self.label_chansons.configure(text="-")
 
-        #Efface les anciens graph sans supprimer leur cadres.
+        # winfo_children() retourne la liste des éléments contenus dans le cadre.
+        # Parcourt cette liste et supprime chaque élément avec destroy(). 
         for graph in self.cadre_graph_artistes.winfo_children():
             graph.destroy()
 
@@ -293,20 +294,20 @@ class PageWrapped(ctk.CTkFrame):
 
         #Crée le cadre du graph des artistes à gauche.
         self.cadre_graph_artistes = ctk.CTkFrame(self.cadre_graphiques, fg_color="transparent") #fg_color transparent pour que le cadre ne soit pas visible.
-        self.cadre_graph_artistes.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
+        self.cadre_graph_artistes.grid(row=0, column=0, padx=5, pady=10, sticky="nsew") #sticky="nsew" permet au cadre de s'étirer dans les 4 directions pour remplir sa case.
 
         #Crée le cadre du graph des chansons à droite.
         self.cadre_graph_chansons = ctk.CTkFrame(self.cadre_graphiques, fg_color="transparent") #fg_color transparent pour que le cadre ne soit pas visible.
-        self.cadre_graph_chansons.grid(row=0, column=1, padx=5, pady=10, sticky="nsew")
+        self.cadre_graph_chansons.grid(row=0, column=1, padx=5, pady=10, sticky="nsew") #sticky="nsew" permet au cadre de s'étirer dans les 4 directions pour remplir sa case.
 
     #Affiche les graphiques des artistes et chansons préférés.
     def afficher_graphiques(self):
 
         #Suprime les anciens graph qui sont ds le cadre.
-        for graph in self.cadre_graph_artistes.winfo_children():
+        for graph in self.cadre_graph_artistes.winfo_children(): # winfo_children() retourne la liste des éléments contenus dans le cadre.
             graph.destroy()
 
-        for graph in self.cadre_graph_chansons.winfo_children():
+        for graph in self.cadre_graph_chansons.winfo_children(): # winfo_children() retourne la liste des éléments contenus dans le cadre.
             graph.destroy()
 
         #Vérifie si la période contient des écoutes.
@@ -327,7 +328,7 @@ class PageWrapped(ctk.CTkFrame):
 
         #Dessine et affiche le graph.
         self.canvas_artistes.draw()
-        self.canvas_artistes.get_tk_widget().pack(pady=10)
+        self.canvas_artistes.get_tk_widget().pack(pady=10) # get_tk_widget() récupère le widget Tkinter associé au graphique pour pouvoir l'afficher dans le cadre avec pack().
 
         #Ferme la figure Matplotlib.
         plt.close(graph_artistes)
