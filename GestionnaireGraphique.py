@@ -128,3 +128,85 @@ class GestionnaireGraphiques:
          plt.ylabel("Nombre d'écoutes")
          plt.grid(False)
          return fig
+
+    #Crée un diagramme circulaire de la répartition des écoutes
+    #entre les artistes préférés et Autres.
+    def graphique_repartition_artistes_wrapped(self, donnees):
+
+        #Récupère les noms et les nombres d'écoutes.
+        artistes = donnees["artistes"]
+        ecoutes = donnees["ecoutes"]
+
+        #Raccourcit les noms des artistes pour pas avoir chevauchement.
+        nom_courts = []
+
+        for artiste in artistes:
+            nom_courts.append(artiste[:12])
+
+        #Crée la figure du graphique.
+        figure = plt.figure(figsize=(5.5, 3.5))
+
+        #Crée le graph sans les noms diretement dessus.
+        parties, textes, pourcentages = plt.pie(ecoutes, autopct="%1.0f%%")
+
+        #Affiche les noms des artistes dans une légende à droite.
+        plt.legend(parties, artistes, loc="center left", bbox_to_anchor=(1, 0.5), fontsize=8)
+
+        #Laisse de la place pour la légende.
+        plt.subplots_adjust(right=0.55)
+
+        #Affiche le titre et conserve proportion du cercle.
+        plt.title("Répartition des artistes")
+        plt.axis("equal")
+
+        return figure
+
+    #Crée un graphique à barres des 5 chansons les plus 
+    #écoutées pendant la période sélectionné.
+    def graphique_top_chansons_wrapped(self, classement):
+
+        #Crée les listes nécessaires au graph.
+        legendes = []
+        nombres = []
+        positions = []
+
+        position = 1
+
+        #Parcourt les chansons du top 5.
+        for chanson, nombre in classement:
+
+            #Enregistre la position, le titre et le nombre d'écoutes.
+            positions.append(position)
+            legendes.append(str(position) + ". " + chanson.titre) #pour eviter de se melanger entre 2 chansons du meme titre.
+            nombres.append(nombre)
+
+            position += 1
+
+
+        #Crée la figure.
+        figure = plt.figure(figsize=(6.2, 4))
+
+        #Donne des couleurs différentes à chaque bar.
+        couleurs = ["blue", "orange", "green", "red", "purple"]
+
+        #Crée les barres et les étiquettes.
+        barres = plt.bar(positions, nombres, color=couleurs)
+
+        #Affiche seulement les numéros 1 à 5.
+        plt.xticks(positions)
+
+        #Affiche les nombres entiers sur l'axe Y
+        plt.yticks(range(0, max(nombres) + 1))
+
+        #Affiche la légende des chansons à droite.
+        plt.legend(barres, legendes, loc="center left", bbox_to_anchor=(1, 0.5), fontsize=8)
+
+        #Laisse de la place pour la légende.
+        plt.subplots_adjust(left=0.12,right=0.45, bottom=0.22)
+
+        #Ajoute les infos du graph.
+        plt.title("Top 5 des chansons")
+        plt.xlabel("Chansons")
+        plt.ylabel("Nombre d'écoutes")
+
+        return figure

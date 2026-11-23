@@ -1,5 +1,10 @@
 import customtkinter as ctk
+import matplotlib.pyplot as plt
+
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 from BilanMusical import BilanMusical
+from GestionnaireCSV import GestionnaireCSV
 
 #Hérite de CTkFrame pour que PageWrapped soit directement un cadre graphique.
 #Cela permet d'utiliser les méthodes de CTkFrame sans devoir créer
@@ -64,11 +69,11 @@ class PageWrapped(ctk.CTkFrame):
         #Récupère le dictionnaire des stats.
         statistiques = self.bilan.calculer_statistiques(self.ecoutes)
 
-        #Affiche le nom du user.
-        self.label_profil.configure(text=self.utilisateur.nom)
-
         #Affiche le nombre d'écoutes.
         self.label_ecoutes.configure(text=str(statistiques["nombre_ecoutes"]))
+
+        #Affiche le nom de l'utilisateur dans le titre.
+        self.titre.configure(text="MusicStats Wrapped de " + self.utilisateur.nom)
 
         #Affiche le nombre de minutes avec 2 décimales.
         self.label_minutes.configure(text=str(round(statistiques["nombre_minutes"], 2)))
@@ -78,6 +83,15 @@ class PageWrapped(ctk.CTkFrame):
         
         #Affiche les nombre de chansons différentes.
         self.label_chansons.configure(text=str(statistiques["nombre_chansons"]))
+
+        #Met à jour les graph de la période.
+        self.afficher_graphiques()
+
+        #Active le bouton pour exporter si la période contient des écoutes.
+        if len(self.ecoutes) > 0:
+            self.bouton_export.configure(state="normal")
+        else:
+            self.bouton_export.configure(state="disabled")
 
     #Met à jour le bilan quand le user change de mois.
     def changer_mois(self, mois):
@@ -129,14 +143,24 @@ class PageWrapped(ctk.CTkFrame):
         self.menu_mois.configure(values=["-"], state="disabled")
         self.menu_mois.set("-")
 
-        #Réinitialise le nom de l'utilisateur.
-        self.label_profil.configure(text="Aucun utilisateur sélectionné")
+        #Réinitialise le titre.
+        self.titre.configure(text="MusicStats Wrapped")
 
         #Efface les stats afficher.
         self.label_ecoutes.configure(text="-")
         self.label_minutes.configure(text="-")
         self.label_artistes.configure(text="-")
         self.label_chansons.configure(text="-")
+
+        #Efface les anciens graph sans supprimer leur cadres.
+        for graph in self.cadre_graph_artistes.winfo_children():
+            graph.destroy()
+
+        for graph in self.cadre_graph_chansons.winfo_children():
+            graph.destroy()
+
+        #Désactive le bouton pour exporter quand on réinitialise le bilan.
+        self.bouton_export.configure(state="disabled")
 
     #Rechercher un utilisateur et préparation de ses périodes dispo.
     def rechercher_utilisateur(self):
@@ -194,45 +218,49 @@ class PageWrapped(ctk.CTkFrame):
         self.titre = ctk.CTkLabel(self.zone, text="MusicStats Wrapped", font=("Arial", 30, "bold"))
         self.titre.pack(pady=20)
 
+        #Crée un cadre pour placer tous les boutons sur la meme ligne.
+        self.cadre_boutons = ctk.CTkFrame(self.zone)
+        self.cadre_boutons.pack(fill="x", padx=20, pady=10)
+
+        #Crée un bouton pour exporter les stats du Wrapped.
+        self.bouton_export = ctk.CTkButton(self.cadre_boutons, text="Exporter les stats", width=170, height=45, command=self.exporter_csv, state="disabled")
+        self.bouton_export.pack(side="right", padx=10, pady=10)
+
         #Crée le cadre de recherche.
-        self.cadre_recherche = ctk.CTkFrame(self.zone)
-        self.cadre_recherche.pack(fill="x", pady=10, padx=20)
+        self.cadre_recherche = ctk.CTkFrame(self.cadre_boutons, fg_color="transparent") #fg_color transparent pour que le cadre ne soit pas visible.
+        self.cadre_recherche.pack(side="left", pady=10, padx=5)
 
         #Crée le champ de recherche.
-        self.champ_recherche = ctk.CTkEntry(self.cadre_recherche, placeholder_text="Nom de l'utilisateur", width=200)
-        self.champ_recherche.pack(side="left", padx=(10, 15))
+        self.champ_recherche = ctk.CTkEntry(self.cadre_recherche, placeholder_text="Nom de l'utilisateur", width=200, height=45)
+        self.champ_recherche.pack(side="left", padx=5)
 
         #Crée le bouton de recherche.
-        self.bouton_recherche = ctk.CTkButton(self.cadre_recherche, text="Rechercher", command=self.rechercher_utilisateur)
-        self.bouton_recherche.pack(side="left", padx=10)
+        self.bouton_recherche = ctk.CTkButton(self.cadre_recherche, text="Rechercher", width=140, height = 45, command=self.rechercher_utilisateur)
+        self.bouton_recherche.pack(side="left", padx=5)
 
         #Crée une étiquette pour les messages d'erreurs de recherche.
         self.label_message = ctk.CTkLabel(self.zone, text="")
         self.label_message.pack()
 
         #Crée le cadre des sélecteurs de la période.
-        self.cadre_periode = ctk.CTkFrame(self.zone)
-        self.cadre_periode.pack(fill="x", pady=20, padx=10) #Fill"x" etire horizontalement.
+        self.cadre_periode = ctk.CTkFrame(self.cadre_boutons, fg_color="transparent") #fg_color transparent pour que le cadre ne soit pas visible.
+        self.cadre_periode.pack(side="left", pady=10, padx=5) #Fill"x" etire horizontalement.
         
         #Affiche le titre du sélecteur d'année.
         label_annee = ctk.CTkLabel(self.cadre_periode, text="Année :")
-        label_annee.pack(side="left", padx=10, pady=15)
+        label_annee.pack(side="left", padx=5, pady=10)
 
         #Crée le menu déroulant des années.
-        self.menu_annee = ctk.CTkOptionMenu(self.cadre_periode, values=["-"], state="disabled", command=self.changer_annee)
-        self.menu_annee.pack(side="left", padx=10)
+        self.menu_annee = ctk.CTkOptionMenu(self.cadre_periode, values=["-"], width=130, height=45, state="disabled", command=self.changer_annee)
+        self.menu_annee.pack(side="left", padx=5)
 
         #Affiche le titre du sélecteur de mois.
         label_mois = ctk.CTkLabel(self.cadre_periode, text="Mois :")
-        label_mois.pack(side="left", padx=10)
+        label_mois.pack(side="left", padx=5)
 
         #Crée le menu déroulant des mois.
-        self.menu_mois = ctk.CTkOptionMenu(self.cadre_periode, values=["-"], state="disabled", command=self.changer_mois)
-        self.menu_mois.pack(side="left", padx=10)
-
-        #Crée une étiquette pour le nom du profil sélectionné.
-        self.label_profil = ctk.CTkLabel(self.zone, text="Aucun utilisateur sélectionné", font=("Arial", 20, "bold"))
-        self.label_profil.pack(pady=15)
+        self.menu_mois = ctk.CTkOptionMenu(self.cadre_periode, values=["-"], width=130, height=45, state="disabled", command=self.changer_mois)
+        self.menu_mois.pack(side="left", padx=5)
 
         #Crée le cadre contenant les 4 cases de stats.
         self.cadre_statistiques = ctk.CTkFrame(self.zone, fg_color="transparent")
@@ -253,3 +281,165 @@ class PageWrapped(ctk.CTkFrame):
 
         #Crée la case du nb chansons.
         self.label_chansons = self.creer_case_statistiques("Nombre de chansons différentes", 1, 1)
+
+        #Crée un cadre dans la zone scrolable pour afficher les
+        #2 graphs de Wrapped.
+        self.cadre_graphiques = ctk.CTkFrame(self.zone, fg_color="transparent") #fg_color transparent pour que le cadre ne soit pas visible.
+        self.cadre_graphiques.pack(pady=10, padx=10, fill="x")
+
+        #Permet aux 2 colonnes des graph d'avoir meme largeur.
+        self.cadre_graphiques.grid_columnconfigure(0, weight=1)
+        self.cadre_graphiques.grid_columnconfigure(1, weight=1)
+
+        #Crée le cadre du graph des artistes à gauche.
+        self.cadre_graph_artistes = ctk.CTkFrame(self.cadre_graphiques, fg_color="transparent") #fg_color transparent pour que le cadre ne soit pas visible.
+        self.cadre_graph_artistes.grid(row=0, column=0, padx=5, pady=10, sticky="nsew")
+
+        #Crée le cadre du graph des chansons à droite.
+        self.cadre_graph_chansons = ctk.CTkFrame(self.cadre_graphiques, fg_color="transparent") #fg_color transparent pour que le cadre ne soit pas visible.
+        self.cadre_graph_chansons.grid(row=0, column=1, padx=5, pady=10, sticky="nsew")
+
+    #Affiche les graphiques des artistes et chansons préférés.
+    def afficher_graphiques(self):
+
+        #Suprime les anciens graph qui sont ds le cadre.
+        for graph in self.cadre_graph_artistes.winfo_children():
+            graph.destroy()
+
+        for graph in self.cadre_graph_chansons.winfo_children():
+            graph.destroy()
+
+        #Vérifie si la période contient des écoutes.
+        if len(self.ecoutes) == 0:
+
+            message = ctk.CTkLabel(self.cadre_graph_artistes, text="Aucune écoute disponible pour cette période.")
+            message.pack(pady=20)
+            return
+
+        #Récupère les données de répartition des artistes.
+        repartition = self.bilan.repartition_artistes(self.ecoutes)
+
+        #Crée le graph circulaire des artistes.
+        graph_artistes = self.graphiques.graphique_repartition_artistes_wrapped(repartition)
+
+        #Met le graph ds le cadre de Wrapped.
+        self.canvas_artistes = FigureCanvasTkAgg(graph_artistes, master=self.cadre_graph_artistes)
+
+        #Dessine et affiche le graph.
+        self.canvas_artistes.draw()
+        self.canvas_artistes.get_tk_widget().pack(pady=10)
+
+        #Ferme la figure Matplotlib.
+        plt.close(graph_artistes)
+
+        #Récupère le top 5 des chansons de la période.
+        classement = self.bilan.top_chansons(self.ecoutes)
+
+        #Crée le graph des chansons à barre.
+        graph_chansons = self.graphiques.graphique_top_chansons_wrapped(classement)
+
+        #Met le graph ds le cadre de Wrapped.
+        self.canvas_chansons = FigureCanvasTkAgg(graph_chansons, master=self.cadre_graph_chansons)
+
+        #Dessine et affiche le graph.
+        self.canvas_chansons.draw()
+        self.canvas_chansons.get_tk_widget().pack(pady=10)
+
+        #Ferme la figure Matplotlib.
+        plt.close(graph_chansons)
+
+    #Prépare les stats et les classements du Wrapped pour le CSV.
+    def preparer_donnees_export(self):
+
+        #Crée une liste pour enregistrer chaque ligne du CSV.
+        lignes = []
+
+        #Récupère les 4 stats de la période.
+        statistiques = self.bilan.calculer_statistiques(self.ecoutes)
+
+        #Regroupe les noms et les valeurs stats.
+        donnees = [
+            ("Nombre d'écoutes", statistiques["nombre_ecoutes"]),
+            ("Minutes", round(statistiques["nombre_minutes"], 2)),
+            ("Artistes différents", statistiques["nombre_artistes"]),
+            ("Chansons différentes", statistiques["nombre_chansons"])
+        ]
+
+        #Ajoute les stats générales.
+        for nom, valeur in donnees:
+
+            lignes.append({
+                "utilisateur": self.utilisateur.nom,
+                "annee": self.annee,
+                "mois": self.mois,
+                "catégorie": "Statistiques",
+                "nom": nom,
+                "valeur": valeur
+            })
+
+        #Récupère le top 5 des artistes.
+        classement_artistes = self.bilan.top_artistes(self.ecoutes)
+
+        position = 1
+
+        #Ajoute chaque artistes et son nombre d'écoutes.
+        for artiste, nombre in classement_artistes:
+
+            lignes.append({
+                "utilisateur": self.utilisateur.nom,
+                "annee": self.annee,
+                "mois": self.mois,
+                "catégorie": "Top Artistes",
+                "nom": artiste.nom,
+                "valeur": nombre,
+                "position": position
+            })
+
+            position += 1
+
+        #Récupère le top 5 des chansons.
+        classement_chansons = self.bilan.top_chansons(self.ecoutes)
+
+        position = 1
+
+        #Ajoute chaque chanson et son nombre d'écoutes.
+        for chanson, nombre in classement_chansons:
+
+            lignes.append({
+                "utilisateur": self.utilisateur.nom,
+                "annee": self.annee,
+                "mois": self.mois,
+                "catégorie": "Top Chansons",
+                "nom": chanson.titre + " - " + chanson.artiste.nom, #pour eviter de se melanger entre 2 chansons du meme titre.
+                "valeur": nombre,
+                "position": position
+            })
+
+            position += 1
+
+        #Retourne les lignes qui seront enregistrés ds le CSV.
+        return lignes
+
+    #Exporte automatiquement le Wrapped dans un CSV enregistré
+    #dans le meme dossier que le programme.
+    def exporter_csv(self):
+
+        #Vérifie si un utilisateur est sélectionné.
+        if self.utilisateur is None:
+            return
+
+        #Crée le nom du fichier CSV.
+        nom_fichier = ("wrapped_" + self.utilisateur.nom + "_" + str(self.annee) + "_" + str(self.mois) + ".csv")
+
+        #Prépare les données à exporter.
+        donnees = self.preparer_donnees_export()
+
+        #Enregistre le fichier CSV.
+        gestionnaire = GestionnaireCSV()
+        reussi = gestionnaire.exporter_statistiques(nom_fichier, donnees)
+
+        #Affiche un message selon resultat.
+        if reussi:
+            self.label_message.configure(text="Stats exportées dans " + nom_fichier, text_color="green")
+        else:
+            self.label_message.configure(text="Erreur lors de l'exportation.", text_color="red")
