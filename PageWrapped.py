@@ -76,6 +76,12 @@ class PageWrapped(ctk.CTkFrame):
         #Affiche le nom de l'utilisateur dans le titre.
         self.titre.configure(text="MusicStats Wrapped de " + self.utilisateur.nom)
 
+        #Affiche le nom de la période dans le sous-titre.
+        if self.type_bilan == "Annuel":
+            self.sous_titre.configure(text="Bilan annuel - " + str(self.annee))
+        else:
+            self.sous_titre.configure(text="Bilan mensuel - " + str(self.annee) + " / " + str(self.mois))
+
         #Affiche le nombre de minutes avec 2 décimales.
         self.label_minutes.configure(text=str(round(statistiques["nombre_minutes"], 2)))
 
@@ -175,6 +181,9 @@ class PageWrapped(ctk.CTkFrame):
 
         #Réinitialise le titre.
         self.titre.configure(text="MusicStats Wrapped")
+
+        #Réinitialise le sous-titre.
+        self.sous_titre.configure(text="Sélectionnez un utilisateur et une période pour afficher le bilan.")
 
         #Efface les stats afficher.
         self.label_ecoutes.configure(text="-")
@@ -312,6 +321,10 @@ class PageWrapped(ctk.CTkFrame):
         #Crée le titre de la page.
         self.titre = ctk.CTkLabel(self.zone, text="MusicStats Wrapped", font=("Arial", 30, "bold"))
         self.titre.pack(pady=20)
+
+        #Crée un sous-titre pour afficher la période du bilan.
+        self.sous_titre = ctk.CTkLabel(self.zone, text="Sélectionnez un utilisateur et une période pour afficher le bilan.", font=("Arial", 15), text_color="#555555")
+        self.sous_titre.pack(pady=(0, 10))
 
         #Crée un sélecteur pour choisir un bilan mesnsuel ou annuel.
         self.menu_type = ctk.CTkSegmentedButton(self.zone, values=["Mensuel", "Annuel"], command=self.changer_type_bilan, border_width=0, width=200, height=40, fg_color="#9b9b9b")
@@ -558,7 +571,7 @@ class PageWrapped(ctk.CTkFrame):
         periode = str(self.mois)
 
         if self.type_bilan == "Annuel":
-            période = "annuel"
+            periode = "annuel"
 
         #Crée le nom du fichier CSV.
         nom_fichier = ("wrapped_" + self.utilisateur.nom + "_" + str(self.annee) + "_" + periode + ".csv")

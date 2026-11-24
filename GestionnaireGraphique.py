@@ -195,9 +195,6 @@ class GestionnaireGraphiques:
         #Affiche seulement les numéros 1 à 5.
         plt.xticks(positions)
 
-        #Affiche les nombres entiers sur l'axe Y
-        plt.yticks(range(0, max(nombres) + 1))
-
         #Affiche la légende des chansons à droite.
         plt.legend(barres, legendes, loc="center left", bbox_to_anchor=(1, 0.5), fontsize=8)
 
