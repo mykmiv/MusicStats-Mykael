@@ -44,7 +44,7 @@ class BilanMusical:
         return mois
 
     #Retourne les écoutes de l'utilisateur pour le mois et l'année sélectionné.
-    def filtrer_ecoutes(self, utilisateur, annee, mois):
+    def filtrer_ecoutes(self, utilisateur, annee, mois=None):
 
         ecoutes = []
 
@@ -52,7 +52,7 @@ class BilanMusical:
 
             #Vérifie si l'écoute apparrtient à l'année et au mois sélectionné.
             if ecoute.date_heure.year == annee:
-                if ecoute.date_heure.month == mois:
+                if mois is None or ecoute.date_heure.month == mois:
                     ecoutes.append(ecoute)
 
         return ecoutes

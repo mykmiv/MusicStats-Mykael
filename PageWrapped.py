@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import tkinter as tk
 import matplotlib.pyplot as plt
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -93,6 +94,19 @@ class PageWrapped(ctk.CTkFrame):
         else:
             self.bouton_export.configure(state="disabled")
 
+    #Change le type de bilan entre mensuel et annuel.
+    def changer_type_bilan(self, type_bilan):
+
+        #Enregistre le type de bilan sélectionné.
+        self.type_bilan = type_bilan
+
+        #Vérifie si un utilisateur et une année sont sélectionnés.
+        if self.utilisateur is None or self.annee is None:
+            return
+
+        #Met à jour le bilan selon le type choisi.
+        self.changer_annee(str(self.annee))
+
     #Met à jour le bilan quand le user change de mois.
     def changer_mois(self, mois):
 
@@ -108,6 +122,22 @@ class PageWrapped(ctk.CTkFrame):
 
         #Change l'année sélectionné en nombre entier.
         self.annee = int(annee)
+
+        #Vérifie si l'utilisateur veut un bilan annuel.
+        if self.type_bilan == "Annuel":
+
+            #Aucun mois pour un bilan annuel.
+            self.mois = None
+
+            #Désactive le menu des mois.
+            self.menu_mois.configure(state="disabled")
+
+            #Affiche "Toute l'année" sur le bouton.
+            self.menu_mois.set("Toute l'année")
+
+            #Affiche le bilan annuel.
+            self.afficher_bilan()
+            return
 
         #Récupère les mois disponibles pour cette année.
         mois = self.bilan.mois_disponibles(self.utilisateur, self.annee)
@@ -163,11 +193,75 @@ class PageWrapped(ctk.CTkFrame):
         #Désactive le bouton pour exporter quand on réinitialise le bilan.
         self.bouton_export.configure(state="disabled")
 
+    #Affiche les users correspondant au texte recherché.
+    def actualiser_suggestions(self, evenement):
+
+        #Effaceles anciennes suggestions du premier element au denier "end".
+        self.liste_suggestions.delete(0, "end")
+
+        #Récupère le texte écrit dans la recherche.
+        texte = self.champ_recherche.get().strip().lower() #strip() retire les espaces au début et à la fin du nom.
+
+        #Cache la liste si le champ est vide.
+        if texte == "":
+            self.liste_suggestions.pack_forget() #"Pack_forget()"Cache la liste des suggestions sans la supprimer de l'interface.
+            return
+
+        nombre = 0
+
+        #Parcourt tous les utilisateurs de la collection.
+        for utilisateur in self.collection.utilisateurs.values():
+
+            #Vérifie si le nom de l'utilisateur contient le texte recherché.
+            if texte in utilisateur.nom.lower():
+
+                #Ajoute le nom de l'utilisateur à la liste des suggestions.
+                self.liste_suggestions.insert("end", utilisateur.nom)
+
+                nombre += 1
+
+                #Limite le nombre de suggestions à 5.
+                if nombre >= 5:
+                    break
+
+        if nombre > 0:
+
+            self.liste_suggestions.configure(height=nombre) #Ajuste la hauteur de la liste selon le nombre de suggestions.
+
+            self.liste_suggestions.pack(before=self.label_message, anchor="w", padx=45, pady=(0, 5)) #"Before"Place la liste des suggestions avant self.label_message verticalement donc plus haut ds la page.
+        else:
+            self.liste_suggestions.pack_forget() #Cache la liste si aucune suggestion n'est trouvée.
+
+    #Sélectionne un user parmi les suggestions.
+    def selectionner_suggestion(self, evenement):
+
+        #Récupère la position de la suggestion sélectionnée.
+        selection = self.liste_suggestions.curselection() #La méthode curselection() de l'objet tk.Listbox récupère l'indice de la suggestion sélectionnée sous forme de tuple.
+
+        if len(selection) == 0:
+            return
+
+        #Récupère le nom de l'utilisateur sélectionné.
+        nom = self.liste_suggestions.get(selection[0])
+
+        #Remplace le texte de la recherche par le nom sélectionné.
+        self.champ_recherche.delete(0, "end")
+        self.champ_recherche.insert(0, nom)
+
+        #Cache les suggestions.
+        self.liste_suggestions.pack_forget()
+
+        #Recherche automatiquement ce user.
+        self.rechercher_utilisateur()
+
     #Rechercher un utilisateur et préparation de ses périodes dispo.
     def rechercher_utilisateur(self):
 
         #Récupère le nom écrit dans le champ de recherche.
         nom = self.champ_recherche.get().strip() #strip() retire les espaces au début et à la fin du nom.
+
+        #Cache les suggestions lorsque une recherche est faite.
+        self.liste_suggestions.pack_forget()
 
         #Réinitialise le bilan.
         self.mettre_a_jour_bilan()
@@ -219,6 +313,11 @@ class PageWrapped(ctk.CTkFrame):
         self.titre = ctk.CTkLabel(self.zone, text="MusicStats Wrapped", font=("Arial", 30, "bold"))
         self.titre.pack(pady=20)
 
+        #Crée un sélecteur pour choisir un bilan mesnsuel ou annuel.
+        self.menu_type = ctk.CTkSegmentedButton(self.zone, values=["Mensuel", "Annuel"], command=self.changer_type_bilan, border_width=0, width=200, height=40, fg_color="#9b9b9b")
+        self.menu_type.pack(pady=(0, 10))
+        self.menu_type.set("Mensuel") #Sélectionne le type de bilan mensuel par défaut. 
+
         #Crée un cadre pour placer tous les boutons sur la meme ligne.
         self.cadre_boutons = ctk.CTkFrame(self.zone)
         self.cadre_boutons.pack(fill="x", padx=20, pady=10)
@@ -242,6 +341,29 @@ class PageWrapped(ctk.CTkFrame):
         #Crée une étiquette pour les messages d'erreurs de recherche.
         self.label_message = ctk.CTkLabel(self.zone, text="")
         self.label_message.pack()
+
+        #Crée une liste pour afficher les suggestions d'utilisateurs pendant la recherche.
+        self.liste_suggestions = tk.Listbox( self.zone,
+            width=30,
+            height=5,
+            font=("Arial", 13),
+            bg="#e3edf8", #Définit la couleur de fond de la liste.
+            fg="#202c3a", #Définit la couleur du texte des utilisateurs.
+            selectbackground="#3b8ed0", #Définit la couleur de fond de la suggestion sélectionnée.
+            selectforeground="white", #Définit la couleur du texte de la suggestion sélectionnée.
+            relief="flat", #Enlève l'effet de relief autour de la liste.
+            bd=0, #Définit l'épaisseur de la bordure de la liste à 0.
+            activestyle="none", #Enlève l'effet visuel supplémentaire sur l'élément actif.
+            highlightthickness=0 #Enlève la bordure bleue autour de la liste quand elle est sélectionnée.
+            )
+
+        #Détecte quand le user écrit dans la recherche.
+        #La méthode bind() de Tkinter surveille un événement et exécute la méthode associée lorsqu'il se produit.
+        #KeyRelease est un type d'événement qui détecte le relâchement d'une touche du clavier.
+        self.champ_recherche.bind("<KeyRelease>", self.actualiser_suggestions)
+
+        #Détecte quand une seggestion est sélectionné.
+        self.liste_suggestions.bind("<<ListboxSelect>>", self.selectionner_suggestion)
 
         #Crée le cadre des sélecteurs de la période.
         self.cadre_periode = ctk.CTkFrame(self.cadre_boutons, fg_color="transparent") #fg_color transparent pour que le cadre ne soit pas visible.
@@ -373,6 +495,7 @@ class PageWrapped(ctk.CTkFrame):
                 "utilisateur": self.utilisateur.nom,
                 "annee": self.annee,
                 "mois": self.mois,
+                "type_bilan": self.type_bilan,
                 "catégorie": "Statistiques",
                 "nom": nom,
                 "valeur": valeur
@@ -390,6 +513,7 @@ class PageWrapped(ctk.CTkFrame):
                 "utilisateur": self.utilisateur.nom,
                 "annee": self.annee,
                 "mois": self.mois,
+                "type_bilan": self.type_bilan,
                 "catégorie": "Top Artistes",
                 "nom": artiste.nom,
                 "valeur": nombre,
@@ -410,6 +534,7 @@ class PageWrapped(ctk.CTkFrame):
                 "utilisateur": self.utilisateur.nom,
                 "annee": self.annee,
                 "mois": self.mois,
+                "type_bilan": self.type_bilan,
                 "catégorie": "Top Chansons",
                 "nom": chanson.titre + " - " + chanson.artiste.nom, #pour eviter de se melanger entre 2 chansons du meme titre.
                 "valeur": nombre,
@@ -429,8 +554,14 @@ class PageWrapped(ctk.CTkFrame):
         if self.utilisateur is None:
             return
 
+        #Détermine le nom de la période.
+        periode = str(self.mois)
+
+        if self.type_bilan == "Annuel":
+            période = "annuel"
+
         #Crée le nom du fichier CSV.
-        nom_fichier = ("wrapped_" + self.utilisateur.nom + "_" + str(self.annee) + "_" + str(self.mois) + ".csv")
+        nom_fichier = ("wrapped_" + self.utilisateur.nom + "_" + str(self.annee) + "_" + periode + ".csv")
 
         #Prépare les données à exporter.
         donnees = self.preparer_donnees_export()
