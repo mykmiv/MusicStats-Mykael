@@ -1,11 +1,13 @@
 import customtkinter as ctk
-import tkinter as tk
+import tkinter as tk #Utiliser pour avoir acces a ListBox qui n'a pas avec CustomKinter.
 import matplotlib.pyplot as plt
 
+#FigureCanvasTkAgg est une classe de Matplotlib qui permet d'intégrer un graphique Matplotlib directement dans une interface Tkinter ou CustomTkinter.
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from BilanMusical import BilanMusical
 from GestionnaireCSV import GestionnaireCSV
+from ClassementUtilisateurs import ClassementUtilisateurs
 
 #Hérite de CTkFrame pour que PageWrapped soit directement un cadre graphique.
 #Cela permet d'utiliser les méthodes de CTkFrame sans devoir créer
@@ -30,6 +32,9 @@ class PageWrapped(ctk.CTkFrame):
         #Crée un objet BilanMusical pour utiliser ses méthodes
         #de calcul des statistiques du Wrapped. 
         self.bilan = BilanMusical(collection)
+
+        #Crée un objet ClassementUtilisateurs pour utiliser ses méthodes
+        self.classement = ClassementUtilisateurs(collection)
 
         self.utilisateur = None
         self.annee = None
@@ -56,6 +61,28 @@ class PageWrapped(ctk.CTkFrame):
 
         #Retourne l'étiquette pour pouboir modifier la valeur.
         return label_valeur
+
+    #Crée une case pour afficher le classement d'un utilisateur.
+    def creer_case_classement(self, titre, colonne):
+
+        #Crée le cadre de la case.
+        cadre = ctk.CTkFrame(self.cadre_classements)
+        cadre.grid(row=0, column=colonne, padx=10, pady=10, sticky="nsew")
+
+        #Affiche le titre du classement.
+        label_titre = ctk.CTkLabel(cadre, text=titre, font=("Arial", 15, "bold"))
+        label_titre.pack(pady=(15, 0))
+
+        #Crée le label pour afficher le pourcentage.
+        label_top = ctk.CTkLabel(cadre, text="-", font=("Arial", 30, "bold"))
+        label_top.pack(pady=5)
+
+        #Crée le label pour afficher le nom et la position.
+        label_details = ctk.CTkLabel(cadre, text="-", font=("Arial", 13), wraplength=200, justify="center")
+        label_details.pack(pady=(0, 15), padx=10)
+
+        #Retourne les 2 labels pour pouvoir modifier leurs texte.
+        return label_top, label_details
 
     #Calcul et affcihe les stats de la période sélectionné.
     def afficher_bilan(self):
@@ -93,6 +120,9 @@ class PageWrapped(ctk.CTkFrame):
 
         #Met à jour les graph de la période.
         self.afficher_graphiques()
+
+        #Met à jour les 3 classements de la période.
+        self.afficher_classements()
 
         #Active le bouton pour exporter si la période contient des écoutes.
         if len(self.ecoutes) > 0:
@@ -190,6 +220,16 @@ class PageWrapped(ctk.CTkFrame):
         self.label_minutes.configure(text="-")
         self.label_artistes.configure(text="-")
         self.label_chansons.configure(text="-")
+
+        #Réinitialise les 3 pourcentages.
+        self.label_top_chanson.configure(text="-")
+        self.label_top_artiste.configure(text="-")
+        self.label_top_minutes.configure(text="-")
+
+        #Efface les détails des anciens classements.
+        self.label_details_chanson.configure(text="-")
+        self.label_details_artiste.configure(text="-")
+        self.label_details_minutes.configure(text="-")
 
         # winfo_children() retourne la liste des éléments contenus dans le cadre.
         # Parcourt cette liste et supprime chaque élément avec destroy(). 
@@ -435,6 +475,24 @@ class PageWrapped(ctk.CTkFrame):
         self.cadre_graph_chansons = ctk.CTkFrame(self.cadre_graphiques, fg_color="transparent") #fg_color transparent pour que le cadre ne soit pas visible.
         self.cadre_graph_chansons.grid(row=0, column=1, padx=5, pady=10, sticky="nsew") #sticky="nsew" permet au cadre de s'étirer dans les 4 directions pour remplir sa case.
 
+        #Crée un cadre pour afficher  les 3 classements sous les graphiques.
+        self.cadre_classements = ctk.CTkFrame(self.zone, fg_color="transparent") #fg_color transparent pour que le cadre ne soit pas visible.
+        self.cadre_classements.pack(pady=(5, 20), padx=10, fill="x")
+
+        #Permet aux 3 colonnes d'avoir la meme largeur.
+        for colonne in range(3):
+            self.cadre_classements.grid_columnconfigure(colonne, weight=1)
+
+        #Crée la case du classement de la chanson préféré.
+        self.label_top_chanson, self.label_details_chanson = self.creer_case_classement("Chanson préférée", 0)
+
+        #Crée la case du classement de l'artiste préféré.
+        self.label_top_artiste, self.label_details_artiste = self.creer_case_classement("Artiste préféré", 1)
+
+        #Crée la case du classement des écoutes.
+        self.label_top_minutes, self.label_details_minutes = self.creer_case_classement("Minutes d'écoutes", 2)
+
+
     #Affiche les graphiques des artistes et chansons préférés.
     def afficher_graphiques(self):
 
@@ -483,6 +541,69 @@ class PageWrapped(ctk.CTkFrame):
 
         #Ferme la figure Matplotlib.
         plt.close(graph_chansons)
+
+    #Calcul et affiche les 3 classements du user.
+    def afficher_classements(self):
+
+        #Vérifie si le user possède des écoutes pour cette période.
+        if len(self.ecoutes) == 0:
+
+            #Efface les anciens pourcentages.
+            self.label_top_chanson.configure(text="-")
+            self.label_top_artiste.configure(text="-")
+            self.label_top_minutes.configure(text="-")
+
+            #Efface les anciens détails.
+            self.label_details_chanson.configure(text="-")
+            self.label_details_artiste.configure(text="-")
+            self.label_details_minutes.configure(text="-")
+
+            return
+
+        #Récupère la chanson la plus écouté pendant la période.
+        classement_chansons = self.bilan.top_chansons(self.ecoutes, 1) #1 pour récupérer seulement la première chanson.
+        chanson = classement_chansons[0][0] #Récupère l'objet Chanson de la première position.
+
+        #Calcul la position parmi les user qui ont écouté la chanson.
+        resultat_chanson = self.classement.top_chanson(self.utilisateur, chanson, self.annee, self.mois)
+
+        #Affiche le pourcenatge du classement de la chanson.
+        self.label_top_chanson.configure(text="Top " + str(resultat_chanson["pourcentage"]) + "%")
+
+        #Affiche le nom de la chanson et la position de l'utilisateur.
+        self.label_details_chanson.configure(text=chanson.titre + " - " + chanson.artiste.nom + "\nRang : " + str(resultat_chanson["position"]) + " sur " + str(resultat_chanson["total"]) + " auditeurs")
+
+        #Récupère l'artiste le plus écouté pendant la période.
+        classement_artistes = self.bilan.top_artistes(self.ecoutes, 1) #1 pour récupérer seulement le premier artiste.
+        artiste = classement_artistes[0][0] #Récupère l'objet Artiste de la première position.
+
+        #Calcul la position parmi les user qui ont écouté l'artiste.
+        resultat_artiste = self.classement.top_artiste(self.utilisateur, artiste, self.annee, self.mois)
+
+        #Affiche le pourcentage du classement de l'artiste.
+        self.label_top_artiste.configure(text="Top " + str(resultat_artiste["pourcentage"]) + "%")
+
+        #Affiche le nom de l'artiste et la position de l'utilisateur.
+        self.label_details_artiste.configure(text=artiste.nom + "\nRang : " + str(resultat_artiste["position"]) + " sur " + str(resultat_artiste["total"]) + " auditeurs")
+
+        #Calcul le classement du user selon ses minutes d'écoutes.
+        resultat_minutes = self.classement.top_minutes(self.utilisateur, self.annee, self.mois)
+
+        #Vérifie si des durées sont dispo pour la période.
+        if resultat_minutes is None:
+            self.label_top_minutes.configure(text="-")
+            self.label_details_minutes.configure(text="Aucune durée disponible pour cette période.")
+
+        else:
+
+            #Récupère les minutes d'écoute du user.
+            minutes = round(self.bilan.nombre_minutes(self.ecoutes), 1)
+
+            #Affiche le pourcentage du classement des minutes.
+            self.label_top_minutes.configure(text="Top " + str(resultat_minutes["pourcentage"]) + "%")
+
+            #Affiche les minutes et la position parmi tous les useer.
+            self.label_details_minutes.configure(text=str(minutes) + " minutes " + "\nRang : " + str(resultat_minutes["position"]) + " sur " + str(resultat_minutes["total"]) + " auditeurs")
 
     #Prépare les stats et les classements du Wrapped pour le CSV.
     def preparer_donnees_export(self):

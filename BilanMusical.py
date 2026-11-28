@@ -1,6 +1,5 @@
 from AnalyseurStatistique import AnalyseurStatistique
 
-
 class BilanMusical:
 
     #Initialise le bilan musical avec la collection musicale
@@ -8,8 +7,7 @@ class BilanMusical:
         self.collection = collection
         self.analyseur = AnalyseurStatistique(collection)
 
-    #Retourne les années pendant lesquelles l'utilisateur
-    #possède des écoutes.
+    #Retourne les années pendant lesquelles l'utilisateur possède des écoutes.
     def annees_disponibles(self, utilisateur):
 
         annees = []
@@ -18,7 +16,7 @@ class BilanMusical:
         for ecoute in utilisateur.ecoutes:
 
             #Récupère l'année de l'écoute.
-            annee = ecoute.date_heure.year
+            annee = ecoute.date_heure.year #date_heure = Attribut d'un objet Ecoute qui contient un Timestamp / year = Attribut de Timestamp de Pandas.
 
             #Ajoute l'année à la liste en évitant les doublons.
             if annee not in annees:
@@ -34,7 +32,7 @@ class BilanMusical:
         for ecoute in utilisateur.ecoutes:
 
             #Vérifie si l'écoute apparrtient à l'année sélectionné.
-            if ecoute.date_heure.year == annee:
+            if ecoute.date_heure.year == annee: #date_heure = Attribut d'un objet Ecoute qui contient un Timestamp / year = Attribut de Timestamp de Pandas.
                 mois_ecoute = ecoute.date_heure.month
 
                 #Ajoute le mois à la liste en évitant les doublons.
@@ -44,7 +42,7 @@ class BilanMusical:
         return mois
 
     #Retourne les écoutes de l'utilisateur pour le mois et l'année sélectionné.
-    def filtrer_ecoutes(self, utilisateur, annee, mois=None):
+    def filtrer_ecoutes(self, utilisateur, annee, mois=None): #mois = None fait que mettre un mois est optionnel, ca permet de faire les bilan annuel.
 
         ecoutes = []
 
@@ -123,7 +121,7 @@ class BilanMusical:
         nombres = []
 
         #Compteur des écoutes du top 5.
-        total_top = 0
+        total_top_5 = 0
 
         #Parcourt artistes et nb écoutes.
         for artiste, nombre in classement:
@@ -133,10 +131,10 @@ class BilanMusical:
             nombres.append(nombre)
 
             #Additionne les écoutes du top 5.
-            total_top += nombre
+            total_top_5 += nombre
 
         #Calcule le nombre d'écoutes hors top 5.
-        autres = self.nombre_ecoutes(ecoutes) - total_top
+        autres = self.nombre_ecoutes(ecoutes) - total_top_5
 
         #Ajoute la catégorie Autres si il rest des écoutes.
         if autres > 0:

@@ -6,8 +6,10 @@ class Ecoute:
         self.utilisateur = utilisateur
         self.chanson = chanson
         self.date_heure = date_heure
+
     def jour_semaine(self):
         return self.date_heure.weekday() ### weekday = Methode
+    
     def heure(self):
         return self.date_heure.hour ### hour = Attribut
         
