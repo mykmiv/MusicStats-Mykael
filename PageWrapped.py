@@ -376,7 +376,7 @@ class PageWrapped(ctk.CTkFrame):
         self.cadre_boutons.pack(fill="x", padx=20, pady=10)
 
         #Crée un bouton pour exporter les stats du Wrapped.
-        self.bouton_export = ctk.CTkButton(self.cadre_boutons, text="Exporter les stats", width=170, height=45, command=self.exporter_csv, state="disabled")
+        self.bouton_export = ctk.CTkButton(self.cadre_boutons, text="Exporter les statistiques", width=170, height=45, command=self.exporter_csv, state="disabled")
         self.bouton_export.pack(side="right", padx=10, pady=10)
 
         #Crée le cadre de recherche.
@@ -490,7 +490,7 @@ class PageWrapped(ctk.CTkFrame):
         self.label_top_artiste, self.label_details_artiste = self.creer_case_classement("Artiste préféré", 1)
 
         #Crée la case du classement des écoutes.
-        self.label_top_minutes, self.label_details_minutes = self.creer_case_classement("Minutes d'écoutes", 2)
+        self.label_top_minutes, self.label_details_minutes = self.creer_case_classement("Minutes d'écoute", 2)
 
 
     #Affiche les graphiques des artistes et chansons préférés.
@@ -571,7 +571,7 @@ class PageWrapped(ctk.CTkFrame):
         self.label_top_chanson.configure(text="Top " + str(resultat_chanson["pourcentage"]) + "%")
 
         #Affiche le nom de la chanson et la position de l'utilisateur.
-        self.label_details_chanson.configure(text=chanson.titre + " - " + chanson.artiste.nom + "\nRang : " + str(resultat_chanson["position"]) + " sur " + str(resultat_chanson["total"]) + " auditeurs")
+        self.label_details_chanson.configure(text=chanson.titre + " - " + chanson.artiste.nom + "\nRang : " + str(resultat_chanson["position"]) + " sur " + str(resultat_chanson["total"]) + " utilisateurs")
 
         #Récupère l'artiste le plus écouté pendant la période.
         classement_artistes = self.bilan.top_artistes(self.ecoutes, 1) #1 pour récupérer seulement le premier artiste.
@@ -584,7 +584,7 @@ class PageWrapped(ctk.CTkFrame):
         self.label_top_artiste.configure(text="Top " + str(resultat_artiste["pourcentage"]) + "%")
 
         #Affiche le nom de l'artiste et la position de l'utilisateur.
-        self.label_details_artiste.configure(text=artiste.nom + "\nRang : " + str(resultat_artiste["position"]) + " sur " + str(resultat_artiste["total"]) + " auditeurs")
+        self.label_details_artiste.configure(text=artiste.nom + "\nRang : " + str(resultat_artiste["position"]) + " sur " + str(resultat_artiste["total"]) + " utilisateurs")
 
         #Calcul le classement du user selon ses minutes d'écoutes.
         resultat_minutes = self.classement.classement_minutes(self.utilisateur, self.annee, self.mois)
@@ -603,7 +603,7 @@ class PageWrapped(ctk.CTkFrame):
             self.label_top_minutes.configure(text="Top " + str(resultat_minutes["pourcentage"]) + "%")
 
             #Affiche les minutes et la position parmi tous les useer.
-            self.label_details_minutes.configure(text=str(minutes) + " minutes " + "\nRang : " + str(resultat_minutes["position"]) + " sur " + str(resultat_minutes["total"]) + " auditeurs")
+            self.label_details_minutes.configure(text=str(minutes) + " minutes " + "\nRang : " + str(resultat_minutes["position"]) + " sur " + str(resultat_minutes["total"]) + " utilisateurs")
 
     #Prépare les stats et les classements du Wrapped pour le CSV.
     def preparer_donnees_export(self):
