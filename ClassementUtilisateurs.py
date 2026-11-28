@@ -20,6 +20,7 @@ class ClassementUtilisateurs:
 
         return ecoutes
 
+    #Retourne la position de l'utilisateur dans le classement fait avec les méthodes classement.
     def calculer_position(self, utilisateur, compteurs):
 
         #Vérifie si l'utilisateur est présent dans le classement.
@@ -47,8 +48,11 @@ class ClassementUtilisateurs:
         #Retourne les résultats du classement dans un dictionnaire.
         return {"position": position, "total": total, "pourcentage": pourcentage }
 
-    #Classe l'utilisateur parmi ceux qui ont écouté sa chanson préféré.
-    def top_chanson(self, utilisateur, chanson, annee, mois=None):
+    #Crée un dictionnaire avec tous les utilisateurs qui ont écouté
+    #la chanson et le nombre d'écoutes de chacun.
+    #Transmet ce dictionnaire à calculer_position() pour obtenir
+    #la position et le pourcentage de l'utilisateur sélectionné.
+    def classement_chanson(self, utilisateur, chanson, annee, mois=None):
 
         #Crée un dictionnaire pour compter les écoutes par utilisateur.
         compteurs = {}
@@ -72,8 +76,11 @@ class ClassementUtilisateurs:
         #retourne la position parmi les autilisateurs qui ont écoutés la chanson.
         return self.calculer_position(utilisateur, compteurs)
 
-    #Classe l'utilisateur parmi ceux qui ont écoutés son artiste préféré.
-    def top_artiste(self, utilisateur, artiste, annee, mois=None):
+    #Crée un dictionnaire avec tous les utilisateurs qui ont écouté
+    #l'artiste et le nombre d'écoutes de chacun.
+    #Transmet ce dictionnaire à calculer_position() pour obtenir
+    #la position et le pourcentage de l'utilisateur sélectionné.
+    def classement_artiste(self, utilisateur, artiste, annee, mois=None):
 
         #Crée un dictionnaire pour compter les écoutes par utilisateur.
         compteurs = {}
@@ -97,8 +104,10 @@ class ClassementUtilisateurs:
         #retourne la position parmi les autilisateurs qui ont écoutés l'artiste.
         return self.calculer_position(utilisateur, compteurs)
 
-    #Classe l'utilisateur selon ses minutes d'écoute pendant la période.
-    def top_minutes(self, utilisateur, annee, mois=None):
+    #Crée un dictionnaire avec tous les utilisateurs et le nombre d'écoutes de chacun.
+    #Transmet ce dictionnaire à calculer_position() pour obtenir
+    #la position et le pourcentage de l'utilisateur sélectionné.
+    def classement_minutes(self, utilisateur, annee, mois=None):
 
         #Crée un dictionnaire pour enregistrer les durées par utilisateur.
         durees = {}
