@@ -562,10 +562,10 @@ class PageWrapped(ctk.CTkFrame):
 
         #Récupère la chanson la plus écouté pendant la période.
         classement_chansons = self.bilan.top_chansons(self.ecoutes, 1) #1 pour récupérer seulement la première chanson.
-        chanson = classement_chansons[0][0] #Récupère l'objet Chanson de la première position.
+        chanson = classement_chansons[0][0] #Récupère l'objet Chanson de la première position. Premier 0 pour premier tupe et deuxieme 0 pour premier element du tuple donc la chanson.
 
         #Calcul la position parmi les user qui ont écouté la chanson.
-        resultat_chanson = self.classement.top_chanson(self.utilisateur, chanson, self.annee, self.mois)
+        resultat_chanson = self.classement.classement_chanson(self.utilisateur, chanson, self.annee, self.mois)
 
         #Affiche le pourcenatge du classement de la chanson.
         self.label_top_chanson.configure(text="Top " + str(resultat_chanson["pourcentage"]) + "%")
@@ -578,7 +578,7 @@ class PageWrapped(ctk.CTkFrame):
         artiste = classement_artistes[0][0] #Récupère l'objet Artiste de la première position.
 
         #Calcul la position parmi les user qui ont écouté l'artiste.
-        resultat_artiste = self.classement.top_artiste(self.utilisateur, artiste, self.annee, self.mois)
+        resultat_artiste = self.classement.classement_artiste(self.utilisateur, artiste, self.annee, self.mois)
 
         #Affiche le pourcentage du classement de l'artiste.
         self.label_top_artiste.configure(text="Top " + str(resultat_artiste["pourcentage"]) + "%")
@@ -587,7 +587,7 @@ class PageWrapped(ctk.CTkFrame):
         self.label_details_artiste.configure(text=artiste.nom + "\nRang : " + str(resultat_artiste["position"]) + " sur " + str(resultat_artiste["total"]) + " auditeurs")
 
         #Calcul le classement du user selon ses minutes d'écoutes.
-        resultat_minutes = self.classement.top_minutes(self.utilisateur, self.annee, self.mois)
+        resultat_minutes = self.classement.classement_minutes(self.utilisateur, self.annee, self.mois)
 
         #Vérifie si des durées sont dispo pour la période.
         if resultat_minutes is None:
