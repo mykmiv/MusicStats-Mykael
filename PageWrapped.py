@@ -567,8 +567,14 @@ class PageWrapped(ctk.CTkFrame):
         #Calcul la position parmi les user qui ont écouté la chanson.
         resultat_chanson = self.classement.classement_chanson(self.utilisateur, chanson, self.annee, self.mois)
 
-        #Affiche le pourcenatge du classement de la chanson.
-        self.label_top_chanson.configure(text="Top " + str(resultat_chanson["pourcentage"]) + "%")
+        #Affiche un message si l'utilisateur est le seul auditeur.
+        if resultat_chanson["total"] == 1:
+            self.label_top_chanson.configure(text="Seul auditeur")
+
+        else:
+            #Affiche le pourcentage du classement si plus de un utilisateur.
+            self.label_top_chanson.configure(text="Top " + str(resultat_chanson["pourcentage"]) + "%")
+
 
         #Affiche le nom de la chanson et la position de l'utilisateur.
         self.label_details_chanson.configure(text=chanson.titre + " - " + chanson.artiste.nom + "\nRang : " + str(resultat_chanson["position"]) + " sur " + str(resultat_chanson["total"]) + " utilisateurs")
@@ -580,8 +586,13 @@ class PageWrapped(ctk.CTkFrame):
         #Calcul la position parmi les user qui ont écouté l'artiste.
         resultat_artiste = self.classement.classement_artiste(self.utilisateur, artiste, self.annee, self.mois)
 
-        #Affiche le pourcentage du classement de l'artiste.
-        self.label_top_artiste.configure(text="Top " + str(resultat_artiste["pourcentage"]) + "%")
+        #Affiche un message si l'utilisateur est le seul auditeur.
+        if resultat_artiste["total"] == 1:
+            self.label_top_artiste.configure(text="Seul auditeur")
+
+        else:
+            #Affiche le pourcentage du classement de l'artiste si au moins 2 auditeurs.
+            self.label_top_artiste.configure(text="Top " + str(resultat_artiste["pourcentage"]) + "%")
 
         #Affiche le nom de l'artiste et la position de l'utilisateur.
         self.label_details_artiste.configure(text=artiste.nom + "\nRang : " + str(resultat_artiste["position"]) + " sur " + str(resultat_artiste["total"]) + " utilisateurs")
